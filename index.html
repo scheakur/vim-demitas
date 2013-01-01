@@ -28,7 +28,10 @@
         <hr>
         <section id="main_content">
           <h1>demitasse.vim</h1>
-          <div id="oauth-verifier" style="display: none;"></div>
+          <div id="oauth-verifier" style="display: none;">
+            <h2>OAuth Verifier</h2>
+            <div class="verifier"></div>
+          </div>
         </section>
         <footer>
           Vim-demitasse is maintained by <a href="https://github.com/scheakur">scheakur</a><br>
@@ -42,7 +45,7 @@
     var verifier = (function (params) {
       var kv;
       for (var i = 0, len = params.length; i < len; i++) {
-        kv = params.split('=');
+        kv = params[i].split('=');
         if (kv[0] === 'oauth_verifier') {
           return kv[1];
         }
@@ -50,7 +53,7 @@
     }(loc.search.substring(1).split('&')));
     if (verifier) {
       var dom = doc.getElementById('oauth-verifier');
-      dom.innerHTML = verifier;
+      dom.querySelector('.verifier').innerHTML = verifier;
       dom.style.display = 'block';
     }
   }
