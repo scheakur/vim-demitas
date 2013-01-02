@@ -1,5 +1,5 @@
 "=============================================================================
-" vim-demitasse - Post to tumblr.com
+" vim-demitas - Post to tumblr.com
 " Copyright (c) 2013 Scheakur <http://scheakur.com/>
 "
 " License: MIT license  {{{
@@ -34,14 +34,14 @@ set cpo&vim
 " Post to tumblr.com
 function! s:post()
 	let content = join(getline(1, line('$')), "\n")
-	call demitasse#post(content)
+	call demitas#post(content)
 endfunction
 
 
 " Post command
 command!
 \	-nargs=0
-\	DemitassePost
+\	DemitasPost
 \	call s:post()
 
 

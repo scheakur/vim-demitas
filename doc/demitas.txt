@@ -1,4 +1,4 @@
-*demitasse.txt* *demitasse* Post to tumblr.com
+*demitas.txt* *demitas* Post to tumblr.com
 
 Copyright (c) 2013 Scheakur <http://scheakur.com/>
 
@@ -27,26 +27,26 @@ License: MIT license  {{{
 
 
 ==============================================================================
-CONTENTS						*demitasse-contents*
+CONTENTS						*demitas-contents*
 
-Introduction			|demitasse-introduction|
-Interface			|demitasse-interface|
-  Variables			|demitasse-variables|
-  Commands			|demitasse-commands|
-Changelog			|demitasse-changelog|
+Introduction			|demitas-introduction|
+Interface			|demitas-interface|
+  Variables			|demitas-variables|
+  Commands			|demitas-commands|
+Changelog			|demitas-changelog|
 
 
 
 
 ==============================================================================
-INTRODUCTION						*demitasse-introduction*
+INTRODUCTION						*demitas-introduction*
 
 Create and view scrap files.
 This plugin depends on |webapi-vim| (*1).
 
 You can use this like the followings:
 >
-	:DemitassePost
+	:DemitasPost
 <
 
 [1]: https://github.com/mattn/webapi-vim
@@ -55,33 +55,33 @@ You can use this like the followings:
 
 
 ==============================================================================
-INTERFACE						*demitasse-interface*
+INTERFACE						*demitas-interface*
 
 ------------------------------------------------------------------------------
-VARIABLES						*demitasse-variables*
+VARIABLES						*demitas-variables*
 
-						*g:demitasse_tumblr_hostname*
-g:demitasse_tumblr_hostname
+						*g:demitas_tumblr_hostname*
+g:demitas_tumblr_hostname
 	Hostname where post articles to.
 	You must set this variable like the followings:
 >
-	let g:demitasse_tumblr_hostname = 'example.tumblr.com'
+	let g:demitas_tumblr_hostname = 'example.tumblr.com'
 <
 
 
 
 ------------------------------------------------------------------------------
-COMMANDS						*demitasse-commands*
+COMMANDS						*demitas-commands*
 
-							*:DemitassePost*
-:DemitassePost
+							*:DemitasPost*
+:DemitasPost
 	Post current buffer's contents to tumblr.com.
 
 
 
 
 ==============================================================================
-CHANGELOG						*demitasse-changelog*
+CHANGELOG						*demitas-changelog*
 
 0.0.0:
 - Initial upload

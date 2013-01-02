@@ -1,5 +1,5 @@
 "=============================================================================
-" vim-demitasse - Post to tumblr.com
+" vim-demitas - Post to tumblr.com
 " Copyright (c) 2013 Scheakur <http://scheakur.com/>
 "
 " License: MIT license  {{{
@@ -30,9 +30,9 @@ let s:consumer_key = 'MWR3PEsv6O10RUzdUjjOypBzNI4BDAYNIBIUm6QlD0Se8CNnZl'
 let s:consumer_secret = 'x08RduPmF5rFuXvhbMcLCaapPJ0Jj2uHddAY80j3pUDKUWR9Hz'
 
 
-function! demitasse#prepare()
+function! demitas#prepare()
 	let ctx = {}
-	let configfile = expand('~/.vim-demitasse')
+	let configfile = expand('~/.vim-demitas')
 	if filereadable(configfile)
 		let ctx = eval(join(readfile(configfile), ''))
 		return ctx
@@ -52,19 +52,19 @@ function! demitasse#prepare()
 endfunction
 
 
-function! demitasse#post(content)
+function! demitas#post(content)
 	if empty(a:content)
 		echoerr 'Empty buffer'
 		return
 	endif
 
-	let hostname = get(g:, 'demitasse_tumblr_hostname', '')
+	let hostname = get(g:, 'demitas_tumblr_hostname', '')
 	if empty(hostname)
-		echoerr 'Please set g:demitasse_tumblr_hostname'
+		echoerr 'Please set g:demitas_tumblr_hostname'
 		return
 	endif
 
-	let ctx = demitasse#prepare()
+	let ctx = demitas#prepare()
 	let url = 'http://api.tumblr.com/v2/blog/' . hostname . '/post'
 	let ret = webapi#oauth#post(url, ctx, {}, {
 	\	'type': 'text',
