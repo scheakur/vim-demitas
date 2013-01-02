@@ -1,0 +1,11 @@
+.oauth-verifier {
+    margin: 1em 0;
+}
+
+.verifier {
+    padding: 1em;
+    border: 5px solid #676767;
+    background-color: #fff;
+    font-family: monospace;
+    font-size: x-large;
+}
