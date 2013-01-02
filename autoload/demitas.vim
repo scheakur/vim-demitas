@@ -32,29 +32,47 @@ let s:consumer_secret = 'x08RduPmF5rFuXvhbMcLCaapPJ0Jj2uHddAY80j3pUDKUWR9Hz'
 
 function! demitas#prepare()
 	let ctx = {}
-	let configfile = expand('~/.vim-demitas')
-	if filereadable(configfile)
-		let ctx = eval(join(readfile(configfile), ''))
+	let config_file = expand('~/.vim-demitas')
+	if filereadable(config_file)
+		let ctx = eval(join(readfile(config_file), ''))
 		return ctx
 	endif
 
 	let ctx.consumer_key = s:consumer_key
 	let ctx.consumer_secret = s:consumer_secret
+
 	let request_token_url = 'http://www.tumblr.com/oauth/request_token'
 	let auth_url = 'http://www.tumblr.com/oauth/authorize'
 	let access_token_url = 'http://www.tumblr.com/oauth/access_token'
+
 	let ctx = webapi#oauth#request_token(request_token_url, ctx)
 	call system("open '" . auth_url . '?oauth_token=' . ctx.request_token . "'")
-	let verifier = input('VERIFIER:')
-	let ctx = webapi#oauth#access_token(access_token_url, ctx, {'oauth_verifier': verifier})
-	call writefile([string(ctx)], configfile)
-	return ctx
+	let verifier = input('OAuth Verifier:')
+
+	if !empty(verifier)
+		let ctx = webapi#oauth#access_token(access_token_url, ctx, {
+		\	'oauth_verifier': verifier
+		\})
+		call writefile([string(ctx)], config_file)
+		return ctx
+	endif
+
+	echomsg 'Please input verifier'
 endfunction
 
 
-function! demitas#post(content)
-	if empty(a:content)
-		echoerr 'Empty buffer'
+function! demitas#remove_config()
+	let config_file = expand('~/.vim-demitas')
+	if filewritable(config_file)
+		call delete(config_file)
+	endif
+endfunction
+
+
+function! demitas#post()
+	if !(line('$') >= 3 && !empty(getline(1)) && empty(getline(2)))
+		echomsg 'Invalid format'
+		echomsg '1st line as title, empty 2nd line, under 3rd line as content'
 		return
 	endif
 
@@ -65,12 +83,28 @@ function! demitas#post(content)
 	endif
 
 	let ctx = demitas#prepare()
-	let url = 'http://api.tumblr.com/v2/blog/' . hostname . '/post'
-	let ret = webapi#oauth#post(url, ctx, {}, {
-	\	'type': 'text',
-	\	'format': 'markdown',
-	\	'body': a:content,
-	\})
+
+	if empty(ctx)
+		return
+	endif
+
+	let title =  getline(1)
+	let content = join(getline(3, line('$')), "\n")
+	call demitas#do_post(title, content, hostname, ctx)
 endfunction
 
 
+function! demitas#do_post(title, content, hostname, ctx)
+	let url = 'http://api.tumblr.com/v2/blog/' . a:hostname . '/post'
+	try
+		let ret = webapi#oauth#post(url, a:ctx, {}, {
+		\	'type': 'text',
+		\	'format': 'markdown',
+		\	'title': a:title,
+		\	'body': a:content,
+		\})
+		echo 'Post succeeded'
+	catch
+		call demitas#remove_config()
+	endtry
+endfunction

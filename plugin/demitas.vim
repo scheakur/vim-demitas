@@ -33,8 +33,7 @@ set cpo&vim
 
 " Post to tumblr.com
 function! s:post()
-	let content = join(getline(1, line('$')), "\n")
-	call demitas#post(content)
+	call demitas#post()
 endfunction
 
 
