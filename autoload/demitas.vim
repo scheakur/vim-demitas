@@ -90,11 +90,11 @@ function! demitas#post()
 
 	let title =  getline(1)
 	let content = join(getline(3, line('$')), "\n")
-	call demitas#do_post(title, content, hostname, ctx)
+	call s:do_post(title, content, hostname, ctx)
 endfunction
 
 
-function! demitas#do_post(title, content, hostname, ctx)
+function! s:do_post(title, content, hostname, ctx)
 	let url = 'http://api.tumblr.com/v2/blog/' . a:hostname . '/post'
 	try
 		let ret = webapi#oauth#post(url, a:ctx, {}, {
