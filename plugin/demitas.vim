@@ -51,6 +51,7 @@ function! s:new_article()
 	call append(0, [
 	\	'---',
 	\	'title:',
+	\	'tags:',
 	\	'---'
 	\])
 endfunction

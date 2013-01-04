@@ -87,68 +87,67 @@ function! demitas#post()
 		return
 	endif
 
-	let meta = s:read_metadata()
+	let meta = s:read_meta_data()
 	if !empty(meta)
-		call s:post_with_meta(meta, hostname, ctx)
-		return
+		return s:post_with_meta(meta, hostname, ctx)
 	endif
 
 	if (line('$') >= 3 && !empty(getline(1)) && empty(getline(2)))
-		call s:post_with_plain_format(hostname, ctx)
-		return
+		return s:post_with_plain_format(hostname, ctx)
 	endif
 
-	call s:post_simple(hostname, ctx)
+	return s:post_simple(hostname, ctx)
 endfunction
 
 
 " Keys for meta data
 let s:MetaKey = {
-\	'TITLE': 'title',
 \	'BODY_START': ' body start ',
 \}
 
 
 function! s:post_simple(hostname, ctx)
 	let content = join(getline(1, line('$')), "\n")
-	call s:do_post(content, {}, a:hostname, a:ctx)
+	return s:do_post(content, {}, a:hostname, a:ctx)
 endfunction
 
 
 function! s:post_with_plain_format(hostname, ctx)
 	let title =  getline(1)
 	let content = join(getline(3, line('$')), "\n")
-	call s:do_post(content, {s:MetaKey.TITLE: title}, a:hostname, a:ctx)
+	return s:do_post(content, {'title': title}, a:hostname, a:ctx)
 endfunction
 
 
 function! s:post_with_meta(meta, hostname, ctx)
 	let start = a:meta[s:MetaKey.BODY_START]
+    call remove(a:meta, s:MetaKey.BODY_START)
 	let content = join(getline(start, line('$')), "\n")
-	call s:do_post(content, a:meta, a:hostname, a:ctx)
+	return s:do_post(content, a:meta, a:hostname, a:ctx)
 endfunction
 
 
 function! s:do_post(content, option, hostname, ctx)
 	let url = 'http://api.tumblr.com/v2/blog/' . a:hostname . '/post'
 	try
-		let data = {
+		let data = extend(a:option, {
 		\	'type': 'text',
 		\	'format': 'markdown',
 		\	'body': a:content,
-		\}
-		if !empty(a:option[s:MetaKey.TITLE])
-			let data.title = a:option[s:MetaKey.TITLE]
+		\})
+		if has_key(data, 'tags') && type(data.tags) == type([])
+			let data.tags = join(data.tags, ',')
 		endif
 		let ret = webapi#oauth#post(url, a:ctx, {}, data)
 		echo 'Post succeeded'
+		return ret
 	catch
 		call demitas#remove_config()
 	endtry
 endfunction
 
 
-function! s:read_metadata()
+function! s:read_meta_data()
 	let start = 1
 	let end = line('$')
 
@@ -161,32 +160,37 @@ function! s:read_metadata()
 		return {}
 	endif
 
-	let meta = {}
+	let body_start = 0
+	let yaml = []
 	for num in range(2, end)
 		let line = getline(num)
 		if (line == sep)
-			" key contains white spaces to prevent overwriting
-			let meta[s:MetaKey.BODY_START] = num + 1
+			let body_start = num + 1
 			break
 		endif
-		if (line =~# re_key)
-			let [key, val] = split(line, re_key)
-			let key = s:normalize(key)
-			let val = s:normalize(val)
-			if !empty(key) && !empty(val)
-				let meta[key] = val
-			endif
-		endif
+		call add(yaml, line)
 	endfor
+
+	let meta = s:yaml2obj(join(yaml, "\n"))
+	if (body_start != 0)
+		let meta[s:MetaKey.BODY_START] = body_start
+	endif
 
 	return meta
 endfunction
 
 
-function! s:normalize(str)
-	let normalized = substitute(a:str, '\v^\s*', '', '')
-	let normalized = substitute(normalized, '\v\s*$', '', '')
-	let normalized = tolower(normalized)
-	return  normalized
+function! s:yaml2obj(yaml)
+perl << EOF
+	use YAML::Syck qw(Load);
+	use JSON::Syck qw(Dump);
+	eval {
+		my $yaml = Dump(Load('' . VIM::Eval('a:yaml')) || {});
+		VIM::DoCommand("let obj = " . $yaml);
+	};
+EOF
+	if !exists('obj')
+		return {}
+	endif
+	return obj
 endfunction
-
