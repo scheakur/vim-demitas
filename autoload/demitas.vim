@@ -105,17 +105,35 @@ let s:MetaKey = {
 \	'BODY_START': ' body start ',
 \}
 
+let s:meta_sep = '---'
+
 
 function! s:post_simple(hostname, ctx)
 	let content = join(getline(1, line('$')), "\n")
-	return s:do_post(content, {}, a:hostname, a:ctx)
+	let res = s:do_post(content, {}, a:hostname, a:ctx)
+	call append(0, [
+	\	s:meta_sep,
+	\	'id: ' . s:get_id(res),
+	\	s:meta_sep
+	\])
+	save %
+	return res
 endfunction
 
 
 function! s:post_with_plain_format(hostname, ctx)
 	let title =  getline(1)
 	let content = join(getline(3, line('$')), "\n")
-	return s:do_post(content, {'title': title}, a:hostname, a:ctx)
+	let res = s:do_post(content, {'title': title}, a:hostname, a:ctx)
+	1,2delete
+	call append(0, [
+	\	s:meta_sep,
+	\	'id: ' . s:get_id(res),
+	\	'title: ' . title,
+	\	s:meta_sep
+	\])
+	save %
+	return res
 endfunction
 
 
@@ -123,20 +141,28 @@ function! s:post_with_meta(meta, hostname, ctx)
 	let start = a:meta[s:MetaKey.BODY_START]
     call remove(a:meta, s:MetaKey.BODY_START)
 	let content = join(getline(start, line('$')), "\n")
-	return s:do_post(content, a:meta, a:hostname, a:ctx)
+	let res = s:do_post(content, a:meta, a:hostname, a:ctx)
+	if !has_key(a:meta, 'id')
+		call append(1, 'id: ' . s:get_id(res))
+		save %
+	endif
+	return res
 endfunction
 
 
 function! s:do_post(content, option, hostname, ctx)
 	let url = 'http://api.tumblr.com/v2/blog/' . a:hostname . '/post'
 	try
-		let data = extend(a:option, {
+		let data = extend(deepcopy(a:option), {
 		\	'type': 'text',
 		\	'format': 'markdown',
 		\	'body': a:content,
 		\})
 		if has_key(data, 'tags') && type(data.tags) == type([])
 			let data.tags = join(data.tags, ',')
+		endif
+		if has_key(data, 'id')
+			let url .= '/edit'
 		endif
 		let ret = webapi#oauth#post(url, a:ctx, {}, data)
 		echo 'Post succeeded'
@@ -151,11 +177,10 @@ function! s:read_meta_data()
 	let start = 1
 	let end = line('$')
 
-	let sep = '---'
 	let re_key = '\v^[a-zA-Z0-9 ]+\zs:'
 
 	let first = getline(start)
-	if (first != sep)
+	if (first != s:meta_sep)
 		echomsg 'No metadata'
 		return {}
 	endif
@@ -164,7 +189,7 @@ function! s:read_meta_data()
 	let yaml = []
 	for num in range(2, end)
 		let line = getline(num)
-		if (line == sep)
+		if (line == s:meta_sep)
 			let body_start = num + 1
 			break
 		endif
@@ -193,4 +218,12 @@ EOF
 		return {}
 	endif
 	return obj
+endfunction
+
+
+function! s:get_id(res)
+	" Do not eval(a:res.content) because id is greater than 32bit int
+	let id = substitute(a:res.content,
+	\		'\v.*"response":\{"id":([0-9]+)\}.*', '\1', '')
+	return id
 endfunction

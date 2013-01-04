@@ -50,8 +50,8 @@ function! s:new_article()
 	execute 'edit' file
 	call append(0, [
 	\	'---',
-	\	'title:',
-	\	'tags:',
+	\	'title: ',
+	\	'tags: ',
 	\	'---'
 	\])
 endfunction
