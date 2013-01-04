@@ -46,7 +46,13 @@ function! demitas#prepare()
 	let access_token_url = 'http://www.tumblr.com/oauth/access_token'
 
 	let ctx = webapi#oauth#request_token(request_token_url, ctx)
-	call system("open '" . auth_url . '?oauth_token=' . ctx.request_token . "'")
+	if !has_key(ctx, 'request_token')
+		echomsg 'Need webapi-vim (https://github.com/mattn/webapi-vim)'
+		return
+	endif
+
+	let url = auth_url . '?oauth_token=' . ctx.request_token
+	call openbrowser#open(url)
 	let verifier = input('OAuth Verifier:')
 
 	if !empty(verifier)
@@ -70,12 +76,6 @@ endfunction
 
 
 function! demitas#post()
-	if !(line('$') >= 3 && !empty(getline(1)) && empty(getline(2)))
-		echomsg 'Invalid format'
-		echomsg '1st line as title, empty 2nd line, under 3rd line as content'
-		return
-	endif
-
 	let hostname = get(g:, 'demitas_tumblr_hostname', '')
 	if empty(hostname)
 		echoerr 'Please set g:demitas_tumblr_hostname'
@@ -83,28 +83,110 @@ function! demitas#post()
 	endif
 
 	let ctx = demitas#prepare()
-
 	if empty(ctx)
 		return
 	endif
 
-	let title =  getline(1)
-	let content = join(getline(3, line('$')), "\n")
-	call s:do_post(title, content, hostname, ctx)
+	let meta = s:read_metadata()
+	if !empty(meta)
+		call s:post_with_meta(meta, hostname, ctx)
+		return
+	endif
+
+	if (line('$') >= 3 && !empty(getline(1)) && empty(getline(2)))
+		call s:post_with_plain_format(hostname, ctx)
+		return
+	endif
+
+	call s:post_simple(hostname, ctx)
 endfunction
 
 
-function! s:do_post(title, content, hostname, ctx)
+" Keys for meta data
+let s:MetaKey = {
+\	'TITLE': 'title',
+\	'BODY_START': ' body start ',
+\}
+
+
+function! s:post_simple(hostname, ctx)
+	let content = join(getline(1, line('$')), "\n")
+	call s:do_post(content, {}, a:hostname, a:ctx)
+endfunction
+
+
+function! s:post_with_plain_format(hostname, ctx)
+	let title =  getline(1)
+	let content = join(getline(3, line('$')), "\n")
+	call s:do_post(content, {s:MetaKey.TITLE: title}, a:hostname, a:ctx)
+endfunction
+
+
+function! s:post_with_meta(meta, hostname, ctx)
+	let start = a:meta[s:MetaKey.BODY_START]
+	let content = join(getline(start, line('$')), "\n")
+	call s:do_post(content, a:meta, a:hostname, a:ctx)
+endfunction
+
+
+function! s:do_post(content, option, hostname, ctx)
 	let url = 'http://api.tumblr.com/v2/blog/' . a:hostname . '/post'
 	try
-		let ret = webapi#oauth#post(url, a:ctx, {}, {
+		let data = {
 		\	'type': 'text',
 		\	'format': 'markdown',
-		\	'title': a:title,
 		\	'body': a:content,
-		\})
+		\}
+		if !empty(a:option[s:MetaKey.TITLE])
+			let data.title = a:option[s:MetaKey.TITLE]
+		endif
+		let ret = webapi#oauth#post(url, a:ctx, {}, data)
 		echo 'Post succeeded'
 	catch
 		call demitas#remove_config()
 	endtry
 endfunction
+
+
+function! s:read_metadata()
+	let start = 1
+	let end = line('$')
+
+	let sep = '---'
+	let re_key = '\v^[a-zA-Z0-9 ]+\zs:'
+
+	let first = getline(start)
+	if (first != sep)
+		echomsg 'No metadata'
+		return {}
+	endif
+
+	let meta = {}
+	for num in range(2, end)
+		let line = getline(num)
+		if (line == sep)
+			" key contains white spaces to prevent overwriting
+			let meta[s:MetaKey.BODY_START] = num + 1
+			break
+		endif
+		if (line =~# re_key)
+			let [key, val] = split(line, re_key)
+			let key = s:normalize(key)
+			let val = s:normalize(val)
+			if !empty(key) && !empty(val)
+				let meta[key] = val
+			endif
+		endif
+	endfor
+
+	return meta
+endfunction
+
+
+function! s:normalize(str)
+	let normalized = substitute(a:str, '\v^\s*', '', '')
+	let normalized = substitute(normalized, '\v\s*$', '', '')
+	let normalized = tolower(normalized)
+	return  normalized
+endfunction
+

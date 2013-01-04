@@ -42,14 +42,16 @@ Changelog			|demitas-changelog|
 INTRODUCTION						*demitas-introduction*
 
 Create and view scrap files.
-This plugin depends on |webapi-vim| (*1).
+This plugin depends on |webapi-vim| (*1) and |open-browser| (*2).
 
 You can use this like the followings:
 >
+	:DemitasNew
 	:DemitasPost
 <
 
 [1]: https://github.com/mattn/webapi-vim
+[1]: https://github.com/tyru/open-browser.vim
 
 
 
@@ -68,10 +70,19 @@ g:demitas_tumblr_hostname
 	let g:demitas_tumblr_hostname = 'example.tumblr.com'
 <
 
+						*g:demitas_directory*
+g:demitas_directory	(Default: "~/tm/demitas")
+	Directory where create article files into.
+
 
 
 ------------------------------------------------------------------------------
 COMMANDS						*demitas-commands*
+
+							*:DemitasNew*
+:DemitasNew
+	Create a file to post.
+
 
 							*:DemitasPost*
 :DemitasPost

@@ -37,11 +37,37 @@ function! s:post()
 endfunction
 
 
+let g:demitas_directory = get(g:, 'demitas_directory', expand('~/tmp/demitas'))
+
+
+" Create an article
+function! s:new_article()
+	let demitas_dir = g:demitas_directory . strftime('/%Y/%m')
+	if !isdirectory(demitas_dir)
+		call mkdir(demitas_dir, 'p')
+	endif
+	let file = demitas_dir . strftime('/%Y-%m-%d-%H%M%S') . '.md'
+	execute 'edit' file
+	call append(0, [
+	\	'---',
+	\	'title:',
+	\	'---'
+	\])
+endfunction
+
+
 " Post command
 command!
 \	-nargs=0
 \	DemitasPost
 \	call s:post()
+
+
+" Create command
+command!
+\	-nargs=0
+\	DemitasNew
+\	call s:new_article()
 
 
 " restore 'cpoptions' {{{
