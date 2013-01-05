@@ -177,7 +177,7 @@ function! s:read_meta_data()
 	let start = 1
 	let end = line('$')
 
-	let re_key = '\v^[a-zA-Z0-9 ]+\zs:'
+	let re_key = '\v^[a-zA-Z0-9 ]+:\zs'
 
 	let first = getline(start)
 	if (first != s:meta_sep)
@@ -193,6 +193,8 @@ function! s:read_meta_data()
 			let body_start = num + 1
 			break
 		endif
+		" Force insert space after colon to make it valid YAML format
+		let line = substitute(line, re_key, ' ', '')
 		call add(yaml, line)
 	endfor
 
@@ -206,6 +208,7 @@ endfunction
 
 
 function! s:yaml2obj(yaml)
+	let null = ''
 perl << EOF
 	use YAML::Syck qw(Load);
 	use JSON::Syck qw(Dump);
