@@ -48,6 +48,7 @@ function! s:new_article()
 	endif
 	let file = demitas_dir . strftime('/%Y-%m-%d-%H%M%S') . '.md'
 	execute 'edit' file
+	set filetype=markdown.demitas
 	call append(0, [
 	\	'---',
 	\	'title: ',
