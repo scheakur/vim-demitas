@@ -106,6 +106,7 @@ let s:MetaKey = {
 \}
 
 let s:meta_sep = '---'
+let s:vim_modeline = 'vim: ft=markdown.demitas'
 
 
 function! s:post_simple(hostname, ctx)
@@ -114,6 +115,7 @@ function! s:post_simple(hostname, ctx)
 	call append(0, [
 	\	s:meta_sep,
 	\	'id: ' . s:get_id(res),
+	\	s:vim_modeline,
 	\	s:meta_sep
 	\])
 	save %
@@ -130,6 +132,7 @@ function! s:post_with_plain_format(hostname, ctx)
 	\	s:meta_sep,
 	\	'id: ' . s:get_id(res),
 	\	'title: ' . title,
+	\	s:vim_modeline,
 	\	s:meta_sep
 	\])
 	save %

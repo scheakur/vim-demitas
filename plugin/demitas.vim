@@ -53,6 +53,7 @@ function! s:new_article()
 	\	'---',
 	\	'title: ',
 	\	'tags: ',
+	\	'vim: ft=markdown.demitas',
 	\	'---'
 	\])
 endfunction
