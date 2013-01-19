@@ -29,6 +29,27 @@ scriptencoding utf-8
 let s:consumer_key = 'MWR3PEsv6O10RUzdUjjOypBzNI4BDAYNIBIUm6QlD0Se8CNnZl'
 let s:consumer_secret = 'x08RduPmF5rFuXvhbMcLCaapPJ0Jj2uHddAY80j3pUDKUWR9Hz'
 
+let s:meta_sep = '---'
+let s:vim_modeline = 'vim: ft=markdown.demitas'
+
+
+function! demitas#new_article()
+	let demitas_dir = g:demitas_directory . strftime('/%Y/%m')
+	if !isdirectory(demitas_dir)
+		call mkdir(demitas_dir, 'p')
+	endif
+	let file = demitas_dir . strftime('/%Y-%m-%d-%H%M%S') . '.md'
+	execute 'edit' file
+	set filetype=markdown.demitas
+	call append(0, [
+	\	s:meta_sep,
+	\	'title: ',
+	\	'tags: ',
+	\	s:vim_modeline,
+	\	s:meta_sep
+	\])
+endfunction
+
 
 function! demitas#prepare()
 	let ctx = {}
@@ -104,9 +125,6 @@ endfunction
 let s:MetaKey = {
 \	'BODY_START': ' body start ',
 \}
-
-let s:meta_sep = '---'
-let s:vim_modeline = 'vim: ft=markdown.demitas'
 
 
 function! s:post_simple(hostname, ctx)

@@ -42,20 +42,7 @@ let g:demitas_directory = get(g:, 'demitas_directory', expand('~/tmp/demitas'))
 
 " Create an article
 function! s:new_article()
-	let demitas_dir = g:demitas_directory . strftime('/%Y/%m')
-	if !isdirectory(demitas_dir)
-		call mkdir(demitas_dir, 'p')
-	endif
-	let file = demitas_dir . strftime('/%Y-%m-%d-%H%M%S') . '.md'
-	execute 'edit' file
-	set filetype=markdown.demitas
-	call append(0, [
-	\	'---',
-	\	'title: ',
-	\	'tags: ',
-	\	'vim: ft=markdown.demitas',
-	\	'---'
-	\])
+	call demitas#new_article()
 endfunction
 
 
