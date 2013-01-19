@@ -196,6 +196,10 @@ function! s:read_meta_data()
 			let body_start = num + 1
 			break
 		endif
+		" Ignore vim's modeline simply
+		if (line =~# '\v^(ex|vim?):')
+			continue
+		endif
 		" Force insert space after colon to make it valid YAML format
 		let line = substitute(line, re_key, ' ', '')
 		call add(yaml, line)
