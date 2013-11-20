@@ -76,15 +76,16 @@ function! demitas#prepare()
 	call openbrowser#open(url)
 	let verifier = input('OAuth Verifier:')
 
-	if !empty(verifier)
-		let ctx = webapi#oauth#access_token(access_token_url, ctx, {
-		\	'oauth_verifier': verifier
-		\})
-		call writefile([string(ctx)], config_file)
-		return ctx
+	if empty(verifier)
+		echomsg 'Please input verifier'
+		return
 	endif
 
-	echomsg 'Please input verifier'
+	let ctx = webapi#oauth#access_token(access_token_url, ctx, {
+	\	'oauth_verifier': verifier
+	\})
+	call writefile([string(ctx)], config_file)
+	return ctx
 endfunction
 
 
