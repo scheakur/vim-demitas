@@ -208,7 +208,7 @@ function! s:read_meta_data()
 	endif
 
 	let body_start = 0
-	let yaml = []
+	let yamly = []
 	for num in range(2, end)
 		let line = getline(num)
 		if (line == s:meta_sep)
@@ -220,11 +220,13 @@ function! s:read_meta_data()
 			continue
 		endif
 		" Force insert space after colon to make it valid YAML format
+		" TODO Remove if not necessary
+		"      Now the text is not parsed as YAML
 		let line = substitute(line, re_key, ' ', '')
-		call add(yaml, line)
+		call add(yamly, line)
 	endfor
 
-	let meta = s:yaml2obj(join(yaml, "\n"))
+	let meta = s:yamly2obj(yamly)
 	if (body_start != 0)
 		let meta[s:MetaKey.BODY_START] = body_start
 	endif
@@ -233,20 +235,23 @@ function! s:read_meta_data()
 endfunction
 
 
-function! s:yaml2obj(yaml)
-	let null = ''
-perl << EOF
-	use YAML::Syck qw(Load);
-	use JSON::Syck qw(Dump);
-	eval {
-		my $yaml = Dump(Load('' . VIM::Eval('a:yaml')) || {});
-		VIM::DoCommand("let obj = " . $yaml);
-	};
-EOF
-	if !exists('obj')
-		return {}
-	endif
+function! s:yamly2obj(yamly)
+	let obj = {}
+	for kv in a:yamly
+		let idx = stridx(kv, ':')
+		let key = s:trim(strpart(kv, 0, idx))
+		if empty(key)
+			continue
+		endif
+		let val = s:trim(strpart(kv, idx + 1, len(kv)))
+		let obj[key] = val
+	endfor
 	return obj
+endfunction
+
+
+function! s:trim(str)
+	return substitute(a:str, '^\s*\(.\{-}\)\s*$', '\1', '')
 endfunction
 
 
