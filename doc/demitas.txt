@@ -71,7 +71,7 @@ g:demitas_tumblr_hostname
 <
 
 						*g:demitas_directory*
-g:demitas_directory	(Default: "~/tm/demitas")
+g:demitas_directory	(Default: "~/tmp/demitas")
 	Directory where create article files into.
 
 
